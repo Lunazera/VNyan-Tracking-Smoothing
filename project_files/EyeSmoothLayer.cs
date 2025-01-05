@@ -4,8 +4,6 @@ using UnityEngine;
 using VNyanExtra;
 using System.Collections.Generic;
 
-// Eye bones: bone 22, 23
-
 namespace EyeSmoothLayer
 {
     public class EyeSmoothSettings
@@ -14,13 +12,14 @@ namespace EyeSmoothLayer
         public static void setEyeSmoothLayerOnOff(float val) => EyeSmoothLayerActive = (val == 1f) ? true : false;
 
         public static Quaternion eyeBones;
+        // Eye bones: bone 21, 22
         public static int eyeLeft = 21;
         public static int eyeRight = 22;
 
         public static float speed = 10.0f;
         public static void setEyeSmoothSpeed(float val)
         {
-            speed = 1000 * (1 / val);
+            speed = (val < 1f) ? 1000 : 1000 * (1 / val);
         }
     }
 
@@ -60,27 +59,21 @@ namespace EyeSmoothLayer
         {
             return RootRot;
         }
-
-        // Pose Toggle Method, can be used to activate
         bool IPoseLayer.isActive()
         {
             return EyeSmoothSettings.EyeSmoothLayerActive;
         }
         public void doUpdate(in PoseLayerFrame EyeSmoothFrame)
         {
-            // Get all current Bone and Root values up to this point from our Layer Frame, and load them in our holdover values.
             BoneRotations = EyeSmoothFrame.BoneRotation;
             BonePositions = EyeSmoothFrame.BonePosition;
             BoneScales = EyeSmoothFrame.BoneScaleMultiplier;
             RootPos = EyeSmoothFrame.RootPosition;
             RootRot = EyeSmoothFrame.RootRotation;
 
-            // Get current speed value
-
             // get current Eye Bone rotations as Unity Quat
 
             eyeBoneCurrent = VNyanExtra.QuaternionMethods.convertQuaternionV2U(BoneRotations[EyeSmoothSettings.eyeRight]);
-
             EyeSmoothSettings.eyeBones = Quaternion.RotateTowards(EyeSmoothSettings.eyeBones, eyeBoneCurrent, EyeSmoothSettings.speed * Time.deltaTime);
 
             // Write to VNyan BoneRotation

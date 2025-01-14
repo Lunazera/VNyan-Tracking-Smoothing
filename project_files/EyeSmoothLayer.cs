@@ -118,8 +118,11 @@ namespace EyeSmoothLayer
                 }
             }
 
-            angleSpeed = EyeSmoothSettings.setEyeSmoothAngleAdjustment(EyeSmoothSettings.eyeBones, EyeSmoothSettings.eyeBoneRotateTowards);
-            EyeSmoothSettings.eyeBones = Quaternion.RotateTowards(EyeSmoothSettings.eyeBones, EyeSmoothSettings.eyeBoneRotateTowards, (EyeSmoothSettings.speed + angleSpeed) * Time.deltaTime);
+            if (EyeSmoothSettings.eyeBoneRotateTowards != EyeSmoothSettings.eyeBones)
+            {
+                angleSpeed = EyeSmoothSettings.setEyeSmoothAngleAdjustment(EyeSmoothSettings.eyeBones, EyeSmoothSettings.eyeBoneRotateTowards);
+                EyeSmoothSettings.eyeBones = Quaternion.RotateTowards(EyeSmoothSettings.eyeBones, EyeSmoothSettings.eyeBoneRotateTowards, (EyeSmoothSettings.speed + angleSpeed) * Time.deltaTime);
+            }
 
             // Write to VNyan BoneRotation
             BoneRotations[EyeSmoothSettings.eyeLeft] = VNyanExtra.QuaternionMethods.convertQuaternionU2V(EyeSmoothSettings.eyeBones);

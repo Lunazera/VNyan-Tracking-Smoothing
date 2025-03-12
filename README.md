@@ -1,6 +1,7 @@
 # VNyan Tracking Smoothing 👀
 Applies smoothing to your eyes and head tracking! This can help with reducing jittering from your face tracking.
 Set the base tracking speed and an acceleration. 
+
 The acceleration will speed up your model's movement when you are making large movements. That way, you can have a lot of smoothing applied and now have your model slow down completely.
 You can set whether you want this to apply to only your eyes or your body (head, neck, chest, hips, and spine).
 

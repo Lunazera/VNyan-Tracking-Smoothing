@@ -1,6 +1,7 @@
-# LZ's VNyan Eyebone Smoothing 👀
-Applies smoothing to your eyebones! Can help with reducing jittering from your face tracking.
-Just put in the amount of smoothing you want and hit apply. You might need to try different values to find what works for you. Just know that the higher you set this, the less eye movement you will get overall.
+# VNyan Tracking Smoothing 👀
+Applies smoothing to your eyes and head tracking! This can help with reducing jittering from your face tracking.
+Set the base tracking speed and an acceleration. The acceleration will speed up your model's movement when you are making large movements. That way, you can have a lot of smoothing applied and now have your model slow down completely.
+You can set whether you want this to apply to only your eyes or your body (head, neck, chest, hips, and spine).
 
 ![image of plugin window](https://github.com/Lunazera/VNyan-Eye-Smoothing/blob/main/example.png)
 
@@ -10,17 +11,16 @@ Just put in the amount of smoothing you want and hit apply. You might need to tr
 3. The plugin should be present when you load VNyan! (you should see it in the plugin menu)
 
 ## How it works
-This overwrites your models eyebone rotations with it's own "smoothed" rotation, using VNyan's Pose Layers. It takes the tracked eye rotations from your face tracking, and uses Unity's RotateTowards method to rotate the new rotation towards the tracked data every frame. 
+This overwrites your models eyebones and body/neck/chest/hip/spine bone rotations with it's own "smoothed" rotation, using VNyan's Pose Layers. It takes the tracked rotations from your face tracking and uses Unity's slerp method to rotate the bones towards the tracked data every frame. 
 
-### Smoothing amount
-Smooths out eye bone rotation; the larger the smoothing, the slower your eye tracking will move.
-The `smoothing` setting in the plugin goes into this speed value according to `1000/smoothing` https://github.com/Lunazera/VNyan-Eye-Smoothing/blob/52af3deed55e40c0abc007b6b856429fecc9a3a6/project_files/EyeSmoothLayer.cs#L20-L23
+### Speed
+Base speed of your tracking; the smaller the value, the slower and smoother your tracking will be.
+
+### Acceleration
+If you set your speed to low, you'll find your model will move slowly even when you're making big movements irl. This setting increases your model's bone speeds when making these big jumps. This way you can set your speed lower (more smoothing) and then set this value higher to account for that.
 
 ### Jitter removal
-Sets minimum threshold for your eyes to need to move before eyetracking is applied. This can help remove tiny jitterying in your eye tracking.
+Sets minimum threshold your eyes need to move irl before the model will move. This can help remove tiny jitterying in your eye tracking, set this very low or to 0 to turn off.
 
-### Speed Increase for big eye rotations
-If you set your smoothing amount high, you'll find your eyes will move slowly even when making a big change in your eye movement. This setting increases your eye tracking speed when your eyes make these big jumps (this way you could set your smoothing higher, and then set this value high to account for that).
-
-### eyeBlink blendshape Threshold for tracking
-Many times blinking can throw your eyetracking off for a moment. This setting ignores your eye tracking when both your left and right eyeBlink blendshapes are greater than the set value. ie if this is set to 50, then when both your eyeBlinkLeft and eyeBlinkRight blendshapes are above 50, your eye tracking will freeze.
+### Blink Threshold
+Blinking can throw your eyetracking off for a moment. This setting will make your model's eyes ignore your eyetracking when both your left and right eyeBlink blendshapes are greater than the set value. ie if this is set to 50, then when both your eyeBlinkLeft and eyeBlinkRight blendshapes are above 50, your eye tracking will freeze. Set to 0 to turn off.

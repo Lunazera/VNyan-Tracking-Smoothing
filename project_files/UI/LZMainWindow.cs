@@ -29,6 +29,7 @@ namespace LZTrackingSmoothingPlugin
         [SerializeField] private GameObject windowPrefab;
 
         private RectTransform mainRect;
+        private Button VersionURLButton;
 
         void Start()
         {
@@ -41,6 +42,9 @@ namespace LZTrackingSmoothingPlugin
 
             // Link Close button
             closeButton.onClick.AddListener(delegate { CloseButtonClicked(); });
+
+            VersionURLButton = Version.GetComponent<Button>();
+            VersionURLButton.onClick.AddListener(delegate { VersionClicked(); });
 
             // Theme applies if we aren't in editor
             if (!Application.isEditor)
@@ -76,6 +80,10 @@ namespace LZTrackingSmoothingPlugin
         public void CloseButtonClicked()
         {
             this.windowPrefab.SetActive(false);
+        }
+        public void VersionClicked()
+        {
+            Application.OpenURL(PluginWebsite);
         }
     }
 }

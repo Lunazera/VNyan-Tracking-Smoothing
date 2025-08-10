@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.12.35527.113
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LZ_EyeSmoothing", "LZ_EyeSmoothing.csproj", "{08C75FE4-2AAC-4508-909B-01F8361BF524}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LZ_TrackingSmoothing", "LZ_TrackingSmoothing.csproj", "{08C75FE4-2AAC-4508-909B-01F8361BF524}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,5 +18,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {917B5DA3-AB53-4357-9A9D-21785E9BCAD6}
 	EndGlobalSection
 EndGlobal

@@ -1,94 +1,139 @@
 ﻿using System;
-using VNyanInterface;
-using UnityEngine;
-using VNyanExtra;
 using System.Collections.Generic;
+using LZQuaternions;
+using UnityEngine;
+using VNyanInterface;
+using static UnityEngine.GraphicsBuffer;
 
 namespace TrackingSmoothLayer
 {
     public class TrackingSmoothSettings
     {
-        public static bool SmoothLayerActive = true;
-        public static bool EyesLayerActive = true;
-        public static bool BodyLayerActive = true;
-        public static void setSmoothLayerOnOff(float val) => SmoothLayerActive = (val == 1f) ? true : false;
-        public static void setEyesLayerOnOff(float val) => EyesLayerActive = (val == 1f) ? true : false;
+        private bool SmoothLayerActive = true;
 
-        public static void setBodyLayerOnOff(float val) => BodyLayerActive = (val == 1f) ? true : false;
+        private static List<int> TrackingSmoothingBones = new List<int> {21, 22, 10, 0, 7, 8, 9 };
+        private List<int> TrackingSmoothingEyeBones = new List<int> { 21, 22 };
+        private List<int> TrackingSmoothingBodyBones = new List<int> { 10, 0, 7, 8, 9 };
 
-        public static Quaternion eyeBones;
-        public static Quaternion eyeBoneRotateTowards;
-
-        public static Quaternion headBone;
-        public static Quaternion headBoneRotateTowards;
-
-        public static Quaternion hipBone;
-        public static Quaternion hipBoneRotateTowards;
-        public static Quaternion spineBone;
-        public static Quaternion spineBoneRotateTowards;
-        public static Quaternion chestBone;
-        public static Quaternion chestBoneRotateTowards;
-        public static Quaternion neckBone;
-        public static Quaternion neckBoneRotateTowards;
-        public static Quaternion upperChestBone;
-        public static Quaternion upperChestBoneRotateTowards;
-
-        // Do we need to make reset methods for when toggling on/off?
-
-        // Bone definitions
-        // Eye bones: bone 21, 22
-        public static int eyeLeft = 21;
-        public static int eyeRight = 22;
-        public static int head = 10;
-        public static int hips = 0;
-        public static int spine = 7;
-        public static int chest = 8;
-        public static int neck = 9;
-
-        public static float speed = 10.0f;
-        public static float angleSpeed = 25f;
-
-        public static float eyespeed = 10.0f;
-        public static float eyeAngleSpeed = 25f;
-        public static float eyeJitterRemoval = 0f;
-        public static float blendshapeBlinkThreshold = 50f;
-
-        public static void setAngleSpeed(float val)
+        private static Dictionary<int, VNyanQuaternion> createNewBonesDictonary(List<int> boneList)
         {
-            angleSpeed = val/10;
+            Dictionary<int, VNyanQuaternion> rotationDictionary = new Dictionary<int, VNyanQuaternion>();
+            foreach (var bone in boneList)
+            {
+                rotationDictionary.Add(bone, new VNyanQuaternion { });
+            }
+            return rotationDictionary;
         }
-        public static void setEyeAngleSpeed(float val)
+
+        private static Dictionary<int, VNyanQuaternion> TrackingSmoothCurrent = createNewBonesDictonary(TrackingSmoothingBones);
+        private static Dictionary<int, VNyanQuaternion> TrackingSmoothTarget = createNewBonesDictonary(TrackingSmoothingBones);
+
+        public List<int> getBodyBones() => TrackingSmoothingBodyBones;
+        public List<int> getEyeBones() => TrackingSmoothingEyeBones;
+        public VNyanQuaternion getCurrentBone(int boneNum) => TrackingSmoothCurrent[boneNum];
+        public VNyanQuaternion getTargetBone(int boneNum) => TrackingSmoothTarget[boneNum];
+        public Dictionary<int, VNyanQuaternion> getCurrentBoneDict() => TrackingSmoothCurrent;
+
+
+        public void setCurrentBone(int boneNum, VNyanQuaternion bone)
         {
-            eyeAngleSpeed = val/10;
+            TrackingSmoothCurrent[boneNum] = bone;
         }
-        public static void setBlendshapeBlinkThreshold(float val)
+        public void setTargetBone(int boneNum, VNyanQuaternion bone)
+        {
+            TrackingSmoothTarget[boneNum] = bone;
+        }
+
+        private float bodySmoothing = 10.0f;
+        private float bodyBoost = 25f;
+
+        private float eyeSmoothing = 10.0f;
+        private float eyeBoost = 25f;
+        private float blendshapeBlinkThreshold = 50f;
+
+        public void setSmoothLayerOnOff(float val) => SmoothLayerActive = (val == 1f) ? true : false;
+        public bool getSmoothLayerActive() => SmoothLayerActive;
+
+        /// <summary>
+        /// Rescale the settings range and inverting the diretion
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public float rescaleInvertSpeed(float value)
+        {
+            // newMax * (1 - value / oldMax);
+            return 10f * (1 - value / 100f);
+        }
+
+        public void setBodyBoost(float val)
+        {
+            bodyBoost = val / 10f;
+        }
+        public void setEyeBoost(float val)
+        {
+            eyeBoost = val / 10f;
+        }
+        
+        public void setBodySmoothing(float val)
+        {
+            bodySmoothing = rescaleInvertSpeed(val);
+        }
+
+        public void setEyeSmoothing(float val)
+        {
+            eyeSmoothing = rescaleInvertSpeed(val);
+        }
+
+        public void setBlendshapeBlinkThreshold(float val)
         {
             blendshapeBlinkThreshold = val;
         }
-        public static void setEyeJitterRemoval(float val)
+
+        public float getBodySmoothing() => bodySmoothing;
+        public float getEyeSmoothing() => eyeSmoothing;
+        public float getEyeBoost() => eyeBoost;
+        public float getBodyBoost() => bodyBoost;
+        public float getBlinkThreshold() => blendshapeBlinkThreshold;
+
+        /// <summary>
+        /// Updates the bones in the Target dictionaries.
+        /// </summary>
+        public void updateRotationsTarget(Dictionary<int, VNyanQuaternion> bones, List<int> boneList)
         {
-            eyeJitterRemoval = val;
+            foreach (int boneNum in boneList)
+            {
+                setTargetBone(boneNum, bones[boneNum]);
+            }
         }
 
-
-        public static void setSmoothSpeed(float val)
+        /// <summary>
+        /// Calculates a multiplier based on the angle between two quaternions and a scale.
+        /// </summary>
+        /// <param name="qFrom"></param>
+        /// <param name="qTo"></param>
+        /// <param name="adaptiveScale"></param>
+        /// <returns></returns>
+        public float setAdaptiveAngle(Quaternion qFrom, Quaternion qTo, float angleScale)
         {
-            // Inverted speed value, so that as user increases the "Smooth" setting which calls 'setEyeSmoothSpeed', this number goes from 360 (effectively no smoothing) to 0 (max smoothing)
-            // Clamped, so that val cannot be evaluated below 1
-            //speed = (val < 1f) ? 1000 : 1000 * (1 / val);
-            speed = val/10;
+            return angleScale * Quaternion.Angle(qFrom, qTo);
         }
-        public static void setEyeSmoothSpeed(float val)
-        {
-            eyespeed = val/10;
-        }
 
-        public static float setSmoothAngleAdjustment(Quaternion qFrom, Quaternion qTo)
+        /// <summary>
+        /// Applies Quaternion Slerp method, linearly scaling the slerp amount by the angle between the current and target bones.
+        /// </summary>
+        /// <param name="current"></param>
+        /// <param name="target"></param>
+        /// <param name="slerpAmount"></param>
+        /// <param name="adaptiveScale"></param>
+        /// <returns></returns>
+        public VNyanQuaternion adaptiveSlerp(VNyanQuaternion current, VNyanQuaternion target, float slerpAmount, float angleScale)
         {
-            // Large rotation differences get a "boost" through this
-            float anglescaled = angleSpeed * Quaternion.Angle(qFrom, qTo)/15;
+            Quaternion currentUnityQ = QuaternionMethods.convertQuaternionV2U(current);
+            Quaternion targetUnityQ = QuaternionMethods.convertQuaternionV2U(target);
 
-            return anglescaled;
+            float angleSpeed = setAdaptiveAngle(currentUnityQ, targetUnityQ, angleScale);
+
+            return QuaternionMethods.convertQuaternionU2V(Quaternion.Slerp(currentUnityQ, targetUnityQ, (slerpAmount + angleSpeed) * Time.deltaTime));
         }
     }
 
@@ -96,6 +141,8 @@ namespace TrackingSmoothLayer
     {
         // Set up our frame-by-frame information
         public PoseLayerFrame TrackSmoothFrame = new PoseLayerFrame();
+
+        public TrackingSmoothSettings TrackingSmoothSettings = new TrackingSmoothSettings();
 
         // Create containers to load pose data each frame
         public Dictionary<int, VNyanQuaternion> BoneRotations;
@@ -138,55 +185,64 @@ namespace TrackingSmoothLayer
         }
         bool IPoseLayer.isActive()
         {
-            return TrackingSmoothSettings.SmoothLayerActive;
+            return TrackingSmoothSettings.getSmoothLayerActive();
         }
 
-        bool isEyesActive()
-        {
-            return TrackingSmoothSettings.EyesLayerActive;
-        }
-        bool isBodyActive()
-        {
-            return TrackingSmoothSettings.BodyLayerActive;
-        }
+        public TrackingSmoothSettings getLayerSettings() => TrackingSmoothSettings;
 
-        Quaternion AdaptiveTrackingSmoothing(Quaternion smoothedBone, VNyanQuaternion trackingBone, Quaternion rotateTowardsBone, float slerpAmount, float angleSpeedScale, float jitter = 0f)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="boneList"></param>
+        /// <param name="slerpAmount"></param>
+        /// <param name="adaptiveAmount"></param>
+        public void processBoneRotations(List<int> boneList, float slerpAmount, float adaptiveAmount)
         {
-            // uses spherical linear interpolation to smooth out rotations, scaled by deltatime
-            Quaternion trackingBoneCurrent = VNyanExtra.QuaternionMethods.convertQuaternionV2U(trackingBone);            
-
-            // Don't bother with smoothing if the bones are the same rotation already.
-            if (rotateTowardsBone != smoothedBone)
+            foreach (int boneNum in boneList)
             {
-                float angleBetweenBones = Quaternion.Angle(smoothedBone, rotateTowardsBone);
-
-                // We are going to max out the angle speed increase at 50, this is additive onto the slerp amount
-                //
-                float angleSpeed = angleSpeedScale * angleBetweenBones / 50;
-                if (angleSpeed >= 50)
+                if (BoneRotations.TryGetValue(boneNum, out VNyanQuaternion vnyanCurrent))
                 {
-                    angleSpeed = 50;
+                    // 1. Update target bone
+                    TrackingSmoothSettings.setTargetBone(boneNum, vnyanCurrent);
+                    // 2. Rotate current towards target
+                    rotateTowardsTarget(boneNum, slerpAmount, adaptiveAmount);
                 }
-                if (angleSpeed <= 0)
-                {
-                    angleSpeed = 0;
-                }
-
-                if (jitter != 0)
-                {
-                    if (angleBetweenBones > jitter)
-                    {
-                        rotateTowardsBone = trackingBoneCurrent;
-                    }
-                }
-                else
-                {
-                    rotateTowardsBone = trackingBoneCurrent;
-                }
-
-                smoothedBone = Quaternion.Slerp(smoothedBone, rotateTowardsBone, (slerpAmount + angleSpeed) * Time.deltaTime);
             }
-               return smoothedBone;
+        }
+
+        /// <summary>
+        /// Updates VNyan's BoneRotations dictionary with new rotations.
+        /// </summary>
+        /// <param name="newRotations"></param>
+        public void updateBoneRotations(Dictionary<int, VNyanQuaternion> newRotations, List<int> boneList)
+        {
+            foreach (int boneNum in boneList)
+            {
+                if (BoneRotations.ContainsKey(boneNum))
+                {
+                    BoneRotations[boneNum] = newRotations[boneNum];
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="boneNum"></param>
+        /// <param name="slerpAmount"></param>
+        /// <param name="adaptiveAmount"></param>
+        public void rotateTowardsTarget(int boneNum, float slerpAmount, float angleScale)
+        {
+            VNyanQuaternion target = TrackingSmoothSettings.getTargetBone(boneNum);
+            VNyanQuaternion current = TrackingSmoothSettings.getCurrentBone(boneNum);
+
+            if (!(current == target))
+            {
+                Quaternion target_U = QuaternionMethods.convertQuaternionV2U(target);
+                Quaternion current_U = QuaternionMethods.convertQuaternionV2U(current);
+
+                TrackingSmoothSettings.setCurrentBone(boneNum, TrackingSmoothSettings.adaptiveSlerp(current, target, slerpAmount, angleScale));
+            }
         }
 
         public void doUpdate(in PoseLayerFrame TrackSmoothFrame)
@@ -198,46 +254,29 @@ namespace TrackingSmoothLayer
             RootRot = TrackSmoothFrame.RootRotation;
 
             // Eyes
-            if (isEyesActive() == true)
+            if (TrackingSmoothSettings.getEyeSmoothing() < 10f)
             {
-                eyeBoneCurrent = VNyanExtra.QuaternionMethods.convertQuaternionV2U(BoneRotations[TrackingSmoothSettings.eyeRight]);
-
-                // If we are using the blink threshold setting, then read blink blendshapes and apply tracking when blinking is below
-                if (TrackingSmoothSettings.blendshapeBlinkThreshold != 0)
+                if (TrackingSmoothSettings.getBlinkThreshold() != 0)
                 {
                     blendshape_eyeBlinkLeft = VNyanInterface.VNyanInterface.VNyanAvatar.getBlendshapeInstant("eyeBlinkLeft") * 100;
                     blendshape_eyeBlinkRight = VNyanInterface.VNyanInterface.VNyanAvatar.getBlendshapeInstant("eyeBlinkRight") * 100;
-                    if ((blendshape_eyeBlinkLeft < TrackingSmoothSettings.blendshapeBlinkThreshold) || (blendshape_eyeBlinkRight < TrackingSmoothSettings.blendshapeBlinkThreshold))
+                    if ((blendshape_eyeBlinkLeft < TrackingSmoothSettings.getBlinkThreshold()) || (blendshape_eyeBlinkRight < TrackingSmoothSettings.getBlinkThreshold()))
                     {
-                        TrackingSmoothSettings.eyeBones = AdaptiveTrackingSmoothing(TrackingSmoothSettings.eyeBones, BoneRotations[TrackingSmoothSettings.eyeRight], TrackingSmoothSettings.eyeBoneRotateTowards, TrackingSmoothSettings.eyespeed, TrackingSmoothSettings.eyeAngleSpeed, TrackingSmoothSettings.eyeJitterRemoval);
+                        processBoneRotations(TrackingSmoothSettings.getEyeBones(), TrackingSmoothSettings.getEyeSmoothing(), TrackingSmoothSettings.getEyeBoost());
                     }
                 } 
                 else
                 {
-                    TrackingSmoothSettings.eyeBones = AdaptiveTrackingSmoothing(TrackingSmoothSettings.eyeBones, BoneRotations[TrackingSmoothSettings.eyeRight], TrackingSmoothSettings.eyeBoneRotateTowards, TrackingSmoothSettings.eyespeed, TrackingSmoothSettings.eyeAngleSpeed, TrackingSmoothSettings.eyeJitterRemoval);
+                    processBoneRotations(TrackingSmoothSettings.getEyeBones(), TrackingSmoothSettings.getEyeSmoothing(), TrackingSmoothSettings.getEyeBoost());
                 }
-
-                // Write to VNyan eye bones
-                BoneRotations[TrackingSmoothSettings.eyeLeft] = VNyanExtra.QuaternionMethods.convertQuaternionU2V(TrackingSmoothSettings.eyeBones);
-                BoneRotations[TrackingSmoothSettings.eyeRight] = VNyanExtra.QuaternionMethods.convertQuaternionU2V(TrackingSmoothSettings.eyeBones);
+                updateBoneRotations(TrackingSmoothSettings.getCurrentBoneDict(), TrackingSmoothSettings.getEyeBones());
             }
 
             // Body
-            if (isBodyActive() == true)
+            if (TrackingSmoothSettings.getBodySmoothing() < 10f)
             {
-                // Smooth out body parts controlled directly by tracking
-                TrackingSmoothSettings.headBone = AdaptiveTrackingSmoothing(TrackingSmoothSettings.headBone, BoneRotations[TrackingSmoothSettings.head], TrackingSmoothSettings.headBoneRotateTowards, TrackingSmoothSettings.speed, TrackingSmoothSettings.angleSpeed);
-                TrackingSmoothSettings.hipBone = AdaptiveTrackingSmoothing(TrackingSmoothSettings.hipBone, BoneRotations[TrackingSmoothSettings.hips], TrackingSmoothSettings.hipBoneRotateTowards, TrackingSmoothSettings.speed, TrackingSmoothSettings.angleSpeed);
-                TrackingSmoothSettings.spineBone = AdaptiveTrackingSmoothing(TrackingSmoothSettings.spineBone, BoneRotations[TrackingSmoothSettings.spine], TrackingSmoothSettings.spineBoneRotateTowards, TrackingSmoothSettings.speed, TrackingSmoothSettings.angleSpeed);
-                TrackingSmoothSettings.chestBone = AdaptiveTrackingSmoothing(TrackingSmoothSettings.chestBone, BoneRotations[TrackingSmoothSettings.chest], TrackingSmoothSettings.chestBoneRotateTowards, TrackingSmoothSettings.speed, TrackingSmoothSettings.angleSpeed);
-                TrackingSmoothSettings.neckBone = AdaptiveTrackingSmoothing(TrackingSmoothSettings.neckBone, BoneRotations[TrackingSmoothSettings.neck], TrackingSmoothSettings.neckBoneRotateTowards, TrackingSmoothSettings.speed, TrackingSmoothSettings.angleSpeed);
-
-                // Write to VNyan BoneRotation
-                BoneRotations[TrackingSmoothSettings.head] = VNyanExtra.QuaternionMethods.convertQuaternionU2V(TrackingSmoothSettings.headBone);
-                BoneRotations[TrackingSmoothSettings.hips] = VNyanExtra.QuaternionMethods.convertQuaternionU2V(TrackingSmoothSettings.hipBone);
-                BoneRotations[TrackingSmoothSettings.spine] = VNyanExtra.QuaternionMethods.convertQuaternionU2V(TrackingSmoothSettings.spineBone);
-                BoneRotations[TrackingSmoothSettings.chest] = VNyanExtra.QuaternionMethods.convertQuaternionU2V(TrackingSmoothSettings.chestBone);
-                BoneRotations[TrackingSmoothSettings.neck] = VNyanExtra.QuaternionMethods.convertQuaternionU2V(TrackingSmoothSettings.neckBone);
+                processBoneRotations(TrackingSmoothSettings.getBodyBones(), TrackingSmoothSettings.getBodySmoothing(), TrackingSmoothSettings.getBodyBoost());
+                updateBoneRotations(TrackingSmoothSettings.getCurrentBoneDict(), TrackingSmoothSettings.getBodyBones());
             }
         }
     }

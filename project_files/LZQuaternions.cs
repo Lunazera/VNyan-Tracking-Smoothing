@@ -6,21 +6,33 @@ using System.Text;
 using UnityEngine;
 using VNyanInterface;
 
-namespace VNyanExtra
+namespace LZQuaternions
 {
     public class BoneLists
     {
-        public static List<int> bonesLeftArm = new List<int> { 11, 13, 15, 17 };
-        public static List<int> bonesRightArm = new List<int> { 12, 14, 16, 18 };
+        public static List<int> LeftArm = new List<int> { 11, 13, 15, 17 };
+        public static List<int> RightArm = new List<int> { 12, 14, 16, 18 };
 
-        public static List<int> bonesLeftFingers = new List<int> { 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38 };
-        public static List<int> bonesRightFingers = new List<int> { 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53 };
+        public static List<int> LeftFingers = new List<int> { 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38 };
+        public static List<int> ThumbL = new List<int> { 24, 25, 26 };
+        public static List<int> IndexL = new List<int> { 27, 28, 29 };
+        public static List<int> MiddleL = new List<int> { 30, 31, 32 };
+        public static List<int> RingL = new List<int> { 33, 34, 35 };
+        public static List<int> LittleL = new List<int> { 36, 37, 38 };
+
+        public static List<int> RightFingers = new List<int> { 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53 };
+        public static List<int> ThumbR = new List<int> { 39, 40, 41 };
+        public static List<int> IndexR = new List<int> { 42, 43, 44 };
+        public static List<int> MiddleR = new List<int> { 45, 46, 47 };
+        public static List<int> RingR = new List<int> { 48, 49, 50 };
+        public static List<int> LittleR = new List<int> { 51, 52, 53 };
+
 
         public static List<int> bonesLeftLeg = new List<int> { 1, 3, 5 };
         public static List<int> bonesRightLeg = new List<int> { 2, 4, 6 };
     }
 
-    public class VectorExtensions
+    public class VectorMethods
     {
         public static VNyanVector3 set(VNyanVector3 inputVector, float newX, float newY, float newZ)
         {
@@ -31,7 +43,7 @@ namespace VNyanExtra
             return inputVector;
         }
 
-        public static VNyanVector3 convertUnityVector(Vector3 inputVector)
+        public static VNyanVector3 convertVectorU2V(Vector3 inputVector)
         {
             VNyanVector3 convertedVector = new VNyanVector3();
 
@@ -41,6 +53,19 @@ namespace VNyanExtra
 
             return convertedVector;
         }
+
+        public static Vector3 convertVectorV2U(VNyanVector3 inputVector)
+        {
+            Vector3 convertedVector = new Vector3();
+
+            convertedVector.x = inputVector.X;
+            convertedVector.y = inputVector.Y;
+            convertedVector.z = inputVector.Z;
+
+            return convertedVector;
+        }
+
+
     }
 
     public class QuaternionMethods
@@ -124,11 +149,46 @@ namespace VNyanExtra
 
             return B;
         }
+        public static VNyanQuaternion setFromVNyanVector3(VNyanVector3 vector)
+        {
+            // This is taken from https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+            // applying the 3-2-1 sequence for conversion
+            VNyanQuaternion B = new VNyanQuaternion();
+
+
+            // We take the Cosine and Sine of x, y, and z (corresponding with pitch, roll, and yaw)
+            float cx = Mathf.Cos(vector.X * Mathf.Deg2Rad / 2);
+            float sx = Mathf.Sin(vector.X * Mathf.Deg2Rad / 2);
+            float cy = Mathf.Cos(vector.Y * Mathf.Deg2Rad / 2);
+            float sy = Mathf.Sin(vector.Y * Mathf.Deg2Rad / 2);
+            float cz = Mathf.Cos(vector.Z * Mathf.Deg2Rad / 2);
+            float sz = Mathf.Sin(vector.Z * Mathf.Deg2Rad / 2);
+
+            B.W = (cx * cy * cz + sx * sy * sz);
+            B.X = (sx * cy * cz - cx * sy * sz);
+            B.Y = (cx * sy * cz + sx * cy * sz);
+            B.Z = (cx * cy * sz - sx * sy * cz);
+
+            return B;
+        }
+
 
         public static VNyanQuaternion rotateByEuler(VNyanQuaternion q, float x, float y, float z)
         {
             // first create our rotation quaternion. Takes in degrees and converts to radians.
             VNyanQuaternion p = setFromEuler(x, y, z);
+
+            // Then we take the product to rotate
+            VNyanQuaternion B = vnyanQuatProd(q, p);
+
+            return B;
+
+        }
+
+        public static VNyanQuaternion rotateByVNyanVector3(VNyanQuaternion q, VNyanVector3 vector)
+        {
+            // first create our rotation quaternion. Takes in degrees and converts to radians.
+            VNyanQuaternion p = setFromVNyanVector3(vector);
 
             // Then we take the product to rotate
             VNyanQuaternion B = vnyanQuatProd(q, p);
@@ -155,6 +215,30 @@ namespace VNyanExtra
 
             return q;
         }
+
+
+        public static VNyanQuaternion rotateByVectorUnity(VNyanQuaternion q, VNyanVector3 vector)
+        {
+            // could ignore mixing for now and just replace.
+            // So we do Quaternion.Euler(X,Y,Z)
+            // and then transplant the quarternion into the VNyanQuarternion
+            Vector3 convertedVector = VectorMethods.convertVectorV2U(vector);
+
+            Quaternion p = Quaternion.Euler(convertedVector);
+
+            Quaternion unityQ = new Quaternion(q.X, q.Y, q.Z, q.W);
+
+            Quaternion rotatedQ = unityQ * p;
+
+            q.X = rotatedQ.x;
+            q.Y = rotatedQ.y;
+            q.Z = rotatedQ.z;
+            q.W = rotatedQ.w;
+
+            return q;
+        }
+
+
 
         public static Quaternion convertQuaternionV2U(VNyanQuaternion q)
         {

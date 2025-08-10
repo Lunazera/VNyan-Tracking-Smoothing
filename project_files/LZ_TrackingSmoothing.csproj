@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -9,11 +9,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>..\..\..\vnyan\VNyan_Data\Managed\Unity.TextMeshPro.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>A:\Unity\Versions\2020.3.48f1\Editor\Data\Managed\UnityEngine\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>..\..\..\vnyan\VNyan_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
-      <HintPath>A:\Unity\Versions\2020.3.48f1\Editor\Data\Resources\PackageManager\ProjectTemplates\libcache\com.unity.template.universal-10.8.0\ScriptAssemblies\UnityEngine.UI.dll</HintPath>
+      <HintPath>..\..\..\vnyan\VNyan_Data\Managed\UnityEngine.UI.dll</HintPath>
     </Reference>
     <Reference Include="VNyanInterface">
       <HintPath>..\..\..\vnyan\VNyan_Data\Managed\VNyanInterface.dll</HintPath>

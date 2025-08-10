@@ -1,182 +1,114 @@
 ﻿using System;
-using VNyanInterface;
-using UnityEngine;
+using Newtonsoft.Json.Linq;
 using TrackingSmoothLayer;
+using UnityEngine;
+using VNyanInterface;
 
 
-namespace TrackingSmoothing
+namespace LZTrackingSmoothingPlugin
 {
     public class TrackingSmoothingPlugin : MonoBehaviour
     {
-        private string paramNameTrackSmoothActive = "LZ_TrackSmoothActive";
-        public float trackSmoothActive = 1f;
-        private float trackSmoothActive_new = 1f;
+        [Header("Main plugin Settings")]
+        [SerializeField] private string paramNameTrackSmoothActive;
+        [SerializeField] private float trackSmoothActive;
 
-        // Eyes
-        private string paramNameTrackEyesActive = "LZ_TrackSmoothEyesActive";
-        public float trackEyesActive = 1f;
-        private float trackEyesActive_new = 1f;
+        [Header("Eyes Settings")]
+        [SerializeField] private string paramNameEyeSmoothing;
+        [SerializeField] private float eyeSmoothing;
 
-        private string paramNameEyeSmoothSpeed = "LZ_TrackSmoothEyeSpeed";
-        public float eyesmoothSpeed = 40f;
-        private float eyesmoothSpeed_new = 40f;
+        [SerializeField] private string paramNameEyeBoost;
+        [SerializeField] private float eyeBoost;
 
-        private string paramNameEyeAngleSpeed = "LZ_TrackSmoothEyeAngleSpeed";
-        public float eyeAngleSpeed = 15f;
-        private float eyeAngleSpeed_new = 15f;
+        [SerializeField] private string paramNameEyeBlinkThreshold;
+        [SerializeField] private float eyeBlinkThreshold;
 
-        private string paramNameEyeJitterRemoval = "LZ_TrackSmoothEyeJitter";
-        public float eyeJitterRemoval = 0.1f;
-        private float eyeJitterRemoval_new = 0.1f;
+        [Header("Body Settings")]
+        [SerializeField] private string paramNameBodySmoothing;
+        [SerializeField] private float bodySmoothing;
 
-        private string paramNameEyeBlinkThreshold = "LZ_TrackSmoothBlinkThreshold";
-        public float eyeBlinkThreshold = 60f;
-        private float eyeBlinkThreshold_new = 60f;
+        [SerializeField] private string paramNameBodyBoost;
+        [SerializeField] private float bodyBoost;
 
-        // Body
-        private string paramNameTrackBodyActive = "LZ_TrackSmoothBodyActive";
-        public float trackBodyActive = 1f;
-        private float trackBodyActive_new = 1f;
+        TrackSmoothLayer TrackSmoothing = new TrackingSmoothLayer.TrackSmoothLayer();
 
-        private string paramNameSmoothSpeed = "LZ_TrackSmoothSpeed";
-        public float smoothSpeed = 50f;
-        private float smoothSpeed_new = 5f;
-
-        private string paramNameAngleSpeed = "LZ_TrackSmoothAngleSpeed";
-        public float angleSpeed = 25f;
-        private float angleSpeed_new = 25f;
-
-        IPoseLayer TrackSmoothing = new TrackingSmoothLayer.TrackSmoothLayer();
+        public static void setInitialValue(string paramName, float value)
+        {
+            float checkValue = value;
+            checkValue = LZUIManager.getSettingsDictFloat(paramName, value);
+            VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat(paramName, checkValue);
+        }
 
         public void Start()
         {
-            // Get values from Sjatar's parameter dictionary (if they exist)
-            if (Sja_UICore.VNyanParameters.ContainsKey(paramNameTrackSmoothActive))
+            if (!Application.isEditor)
             {
-                trackSmoothActive = Convert.ToSingle(Sja_UICore.VNyanParameters[paramNameTrackSmoothActive]);
-            }
-            // Eyes
-            if (Sja_UICore.VNyanParameters.ContainsKey(paramNameTrackEyesActive))
-            {
-                trackEyesActive = Convert.ToSingle(Sja_UICore.VNyanParameters[paramNameTrackEyesActive]);
-            }
-            if (Sja_UICore.VNyanParameters.ContainsKey(paramNameEyeSmoothSpeed))
-            {
-                eyesmoothSpeed = Convert.ToSingle(Sja_UICore.VNyanParameters[paramNameEyeSmoothSpeed]);
-            }
-            if (Sja_UICore.VNyanParameters.ContainsKey(paramNameEyeAngleSpeed))
-            {
-                eyeAngleSpeed = Convert.ToSingle(Sja_UICore.VNyanParameters[paramNameEyeAngleSpeed]);
-            }
-            if (Sja_UICore.VNyanParameters.ContainsKey(paramNameEyeJitterRemoval))
-            {
-                eyeJitterRemoval = Convert.ToSingle(Sja_UICore.VNyanParameters[paramNameEyeJitterRemoval]);
-            }
-            if (Sja_UICore.VNyanParameters.ContainsKey(paramNameEyeBlinkThreshold))
-            {
-                eyeBlinkThreshold = Convert.ToSingle(Sja_UICore.VNyanParameters[paramNameEyeBlinkThreshold]);
-            }
-            // Body
-            if (Sja_UICore.VNyanParameters.ContainsKey(paramNameTrackBodyActive))
-            {
-                trackBodyActive = Convert.ToSingle(Sja_UICore.VNyanParameters[paramNameTrackBodyActive]);
-            }
-            if (Sja_UICore.VNyanParameters.ContainsKey(paramNameSmoothSpeed))
-            {
-                smoothSpeed = Convert.ToSingle(Sja_UICore.VNyanParameters[paramNameSmoothSpeed]);
-            }
-            if (Sja_UICore.VNyanParameters.ContainsKey(paramNameAngleSpeed))
-            {
-                angleSpeed = Convert.ToSingle(Sja_UICore.VNyanParameters[paramNameAngleSpeed]);
-            }
+                VNyanInterface.VNyanInterface.VNyanAvatar.registerPoseLayer(TrackSmoothing);
 
-            VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat(paramNameTrackSmoothActive, trackSmoothActive);
+                setInitialValue(paramNameTrackSmoothActive, trackSmoothActive);
+                setInitialValue(paramNameEyeSmoothing, eyeSmoothing);
+                setInitialValue(paramNameEyeBoost, eyeBoost);
+                setInitialValue(paramNameEyeBlinkThreshold, eyeBlinkThreshold);
+                setInitialValue(paramNameBodySmoothing, bodySmoothing);
+                setInitialValue(paramNameBodyBoost, bodyBoost);
+            }
+            TrackSmoothing.getLayerSettings().setSmoothLayerOnOff(trackSmoothActive);
+            TrackSmoothing.getLayerSettings().setEyeSmoothing(eyeSmoothing);
+            TrackSmoothing.getLayerSettings().setEyeBoost(eyeBoost);
+            TrackSmoothing.getLayerSettings().setBlendshapeBlinkThreshold(eyeBlinkThreshold);
+            TrackSmoothing.getLayerSettings().setBodySmoothing(bodySmoothing);
+            TrackSmoothing.getLayerSettings().setBodyBoost(bodyBoost);
+        }
 
-            VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat(paramNameTrackEyesActive, trackEyesActive);
-            VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat(paramNameEyeSmoothSpeed, eyesmoothSpeed);
-            VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat(paramNameEyeAngleSpeed, eyeAngleSpeed);
-            VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat(paramNameEyeJitterRemoval, eyeJitterRemoval);
-            VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat(paramNameEyeBlinkThreshold, eyeBlinkThreshold);
-
-            VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat(paramNameTrackBodyActive, trackBodyActive);
-            VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat(paramNameSmoothSpeed, smoothSpeed);
-            VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat(paramNameAngleSpeed, angleSpeed);
-
-            TrackingSmoothSettings.setSmoothLayerOnOff(trackSmoothActive);
-
-            TrackingSmoothSettings.setSmoothLayerOnOff(trackEyesActive);
-            TrackingSmoothSettings.setEyeSmoothSpeed(eyesmoothSpeed);
-            TrackingSmoothSettings.setEyeAngleSpeed(eyeAngleSpeed);
-            TrackingSmoothSettings.setEyeJitterRemoval(eyeJitterRemoval);
-            TrackingSmoothSettings.setBlendshapeBlinkThreshold(eyeBlinkThreshold);
-
-            TrackingSmoothSettings.setSmoothLayerOnOff(trackBodyActive);
-            TrackingSmoothSettings.setSmoothSpeed(smoothSpeed);
-            TrackingSmoothSettings.setAngleSpeed(angleSpeed);
-
-            VNyanInterface.VNyanInterface.VNyanAvatar.registerPoseLayer(TrackSmoothing);
+        /// <summary>
+        /// Checks if current VNyan parameter is different than 
+        /// </summary>
+        /// <param name="paramName"></param>
+        /// <returns></returns>
+        public static bool checkForNewValue(string paramName, float currentValue)
+        {
+            return (!(currentValue == LZUIManager.getSettingsDictFloat(paramName)));
         }
 
         public void Update()
         {
             // Get current values from VNyan parameters
             // This is only to grab the new values as they are changed, and should only really apply when the plugin window is open.
-            trackSmoothActive_new = VNyanInterface.VNyanInterface.VNyanParameter.getVNyanParameterFloat(paramNameTrackSmoothActive);
-            if (trackSmoothActive_new != trackSmoothActive)
+            if (checkForNewValue(paramNameTrackSmoothActive, trackSmoothActive))
             {
-                trackSmoothActive = trackSmoothActive_new;
-                TrackingSmoothSettings.setSmoothLayerOnOff(trackSmoothActive);
+                trackSmoothActive = LZUIManager.getSettingsDictFloat(paramNameTrackSmoothActive);
+                TrackSmoothing.getLayerSettings().setSmoothLayerOnOff(trackSmoothActive);
             }
 
-            // Eyes
-            trackEyesActive_new = VNyanInterface.VNyanInterface.VNyanParameter.getVNyanParameterFloat(paramNameTrackEyesActive);
-            if (trackEyesActive_new != trackEyesActive)
+            if (checkForNewValue(paramNameEyeSmoothing, eyeSmoothing))
             {
-                trackEyesActive = trackEyesActive_new;
-                TrackingSmoothSettings.setEyesLayerOnOff(trackEyesActive);
+                eyeSmoothing = LZUIManager.getSettingsDictFloat(paramNameEyeSmoothing);
+                TrackSmoothing.getLayerSettings().setEyeSmoothing(eyeSmoothing);
             }
-            eyesmoothSpeed_new = VNyanInterface.VNyanInterface.VNyanParameter.getVNyanParameterFloat(paramNameEyeSmoothSpeed);
-            if (eyesmoothSpeed_new != eyesmoothSpeed)
+            if (checkForNewValue(paramNameEyeBoost, eyeBoost))
             {
-                eyesmoothSpeed = eyesmoothSpeed_new;
-                TrackingSmoothSettings.setEyeSmoothSpeed(eyesmoothSpeed);
-            }
-            eyeBlinkThreshold_new = VNyanInterface.VNyanInterface.VNyanParameter.getVNyanParameterFloat(paramNameEyeBlinkThreshold);
-            if (eyeBlinkThreshold_new != eyeBlinkThreshold)
-            {
-                eyeBlinkThreshold = eyeBlinkThreshold_new;
-                TrackingSmoothSettings.setBlendshapeBlinkThreshold(eyeBlinkThreshold);
-            }
-            eyeJitterRemoval_new = VNyanInterface.VNyanInterface.VNyanParameter.getVNyanParameterFloat(paramNameEyeJitterRemoval);
-            if (eyeJitterRemoval_new != eyeJitterRemoval)
-            {
-                eyeJitterRemoval = eyeJitterRemoval_new;
-                TrackingSmoothSettings.setEyeJitterRemoval(eyeJitterRemoval);
-            }
-            eyeAngleSpeed_new = VNyanInterface.VNyanInterface.VNyanParameter.getVNyanParameterFloat(paramNameEyeAngleSpeed);
-            if (eyeAngleSpeed_new != eyeAngleSpeed)
-            {
-                eyeAngleSpeed = eyeAngleSpeed_new;
-                TrackingSmoothSettings.setEyeAngleSpeed(eyeAngleSpeed);
+                eyeBoost = LZUIManager.getSettingsDictFloat(paramNameEyeBoost);
+                TrackSmoothing.getLayerSettings().setEyeBoost(eyeBoost);
             }
 
-            trackBodyActive_new = VNyanInterface.VNyanInterface.VNyanParameter.getVNyanParameterFloat(paramNameTrackBodyActive);
-            if (trackBodyActive_new != trackBodyActive)
+            if (checkForNewValue(paramNameEyeBlinkThreshold, eyeBlinkThreshold))
             {
-                trackBodyActive = trackBodyActive_new;
-                TrackingSmoothSettings.setBodyLayerOnOff(trackBodyActive);
+                eyeBlinkThreshold = LZUIManager.getSettingsDictFloat(paramNameEyeBlinkThreshold);
+                TrackSmoothing.getLayerSettings().setBlendshapeBlinkThreshold(eyeBlinkThreshold);
             }
-            smoothSpeed_new = VNyanInterface.VNyanInterface.VNyanParameter.getVNyanParameterFloat(paramNameSmoothSpeed);
-            if (smoothSpeed_new != smoothSpeed)
+
+            
+
+            if (checkForNewValue(paramNameBodySmoothing, bodySmoothing))
             {
-                smoothSpeed = smoothSpeed_new;
-                TrackingSmoothSettings.setSmoothSpeed(smoothSpeed);
+                bodySmoothing = LZUIManager.getSettingsDictFloat(paramNameBodySmoothing);
+                TrackSmoothing.getLayerSettings().setBodySmoothing(bodySmoothing);
             }
-            angleSpeed_new = VNyanInterface.VNyanInterface.VNyanParameter.getVNyanParameterFloat(paramNameAngleSpeed);
-            if (angleSpeed_new != angleSpeed)
+
+            if (checkForNewValue(paramNameBodyBoost, bodyBoost))
             {
-                angleSpeed = angleSpeed_new;
-                TrackingSmoothSettings.setAngleSpeed(angleSpeed);
+                bodyBoost = LZUIManager.getSettingsDictFloat(paramNameBodyBoost);
+                TrackSmoothing.getLayerSettings().setBodyBoost(bodyBoost);
             }
         }
     }

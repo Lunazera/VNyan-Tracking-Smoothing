@@ -5,6 +5,8 @@ I've modified and developed out using their examples as a starting point. These 
 
 These won't talk to the main plugin directly, rather the main Plugin file will check for changes in these parameters to determine when to change settings for the actual plugin.
 
+Probably a better practice would be to establish a standard set of UI scripts and keep that in it's own DLL file, being totally agnostic to the rest of the plugin and bieng able to be interchangeable. I'm not that good at all this yet though :P
+
 A UI should be set up with at least the UI Manager and the Main Window scripts.
 
 ### LZUIManager 

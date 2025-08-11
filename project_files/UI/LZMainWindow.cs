@@ -31,6 +31,11 @@ namespace LZTrackingSmoothingPlugin
         [Tooltip("Top right close button")]
         [SerializeField] private Button closeButton;
 
+        [Header("Plugin Window")]
+        [Tooltip("Prefab for main UI window.")]
+        [SerializeField] private GameObject windowPrefab;
+
+
         private RectTransform mainRect;
         private Button VersionURLButton;
 
@@ -68,7 +73,7 @@ namespace LZTrackingSmoothingPlugin
         }
         public void CloseButtonClicked()
         {
-            this.gameObject.SetActive(false);
+            this.windowPrefab.SetActive(false);
         }
         public void VersionClicked()
         {

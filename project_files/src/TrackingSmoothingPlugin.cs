@@ -90,7 +90,7 @@ namespace LZTrackingSmoothingPlugin
             if (checkForNewValue(paramNameEyeBoost, eyeBoost))
             {
                 eyeBoost = LZUIManager.getSettingsDictFloat(paramNameEyeBoost);
-                TrackSmoothing.getLayerSettings().setEyeBoost(eyeBoost);
+                TrackSmoothing.getLayerSettings().setEyeBoost(eyeBoost, eyeBoostScale);
             }
 
             if (checkForNewValue(paramNameEyeBlinkThreshold, eyeBlinkThreshold))
@@ -110,7 +110,7 @@ namespace LZTrackingSmoothingPlugin
             if (checkForNewValue(paramNameBodyBoost, bodyBoost))
             {
                 bodyBoost = LZUIManager.getSettingsDictFloat(paramNameBodyBoost);
-                TrackSmoothing.getLayerSettings().setBodyBoost(bodyBoost);
+                TrackSmoothing.getLayerSettings().setBodyBoost(bodyBoost, bodyBoostScale);
             }
         }
     }

@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Runtime.CompilerServices;
-using System.Text;
 using UnityEngine;
 using VNyanInterface;
 
 namespace LZQuaternions
 {
+    /// <summary>
+    /// Int lists of bones for reference
+    /// </summary>
     public class BoneLists
     {
         public static List<int> LeftArm = new List<int> { 11, 13, 15, 17 };
@@ -27,11 +27,17 @@ namespace LZQuaternions
         public static List<int> RingR = new List<int> { 48, 49, 50 };
         public static List<int> LittleR = new List<int> { 51, 52, 53 };
 
-
         public static List<int> bonesLeftLeg = new List<int> { 1, 3, 5 };
         public static List<int> bonesRightLeg = new List<int> { 2, 4, 6 };
+
+        public static List<int> EyeBones = new List<int> { 21, 22 };
+
+        public static List<int> BodyBones = new List<int> { 10, 0, 7, 8, 9 };
     }
 
+    /// <summary>
+    /// Methods to extend and convert VNyanVector3 
+    /// </summary>
     public class VectorMethods
     {
         public static VNyanVector3 set(VNyanVector3 inputVector, float newX, float newY, float newZ)
@@ -68,6 +74,9 @@ namespace LZQuaternions
 
     }
 
+    /// <summary>
+    /// Methods to extend and convert VNyanQuaternions
+    /// </summary>
     public class QuaternionMethods
     {
         public static VNyanQuaternion vnyanQuatProd(VNyanQuaternion q, VNyanQuaternion b)
@@ -172,7 +181,6 @@ namespace LZQuaternions
             return B;
         }
 
-
         public static VNyanQuaternion rotateByEuler(VNyanQuaternion q, float x, float y, float z)
         {
             // first create our rotation quaternion. Takes in degrees and converts to radians.
@@ -216,7 +224,6 @@ namespace LZQuaternions
             return q;
         }
 
-
         public static VNyanQuaternion rotateByVectorUnity(VNyanQuaternion q, VNyanVector3 vector)
         {
             // could ignore mixing for now and just replace.
@@ -238,8 +245,6 @@ namespace LZQuaternions
             return q;
         }
 
-
-
         public static Quaternion convertQuaternionV2U(VNyanQuaternion q)
         {
             Quaternion unityQ = new Quaternion(q.X, q.Y, q.Z, q.W);
@@ -255,6 +260,36 @@ namespace LZQuaternions
             p.W = q.w;
 
             return p;
+        }
+
+        /// <summary>
+        /// Calculates a multiplier based on the angle between two quaternions and a scale.
+        /// </summary>
+        /// <param name="qFrom"></param>
+        /// <param name="qTo"></param>
+        /// <param name="adaptiveScale"></param>
+        /// <returns></returns>
+        public static float setAdaptiveAngle(Quaternion qFrom, Quaternion qTo, float angleScale)
+        {
+            return angleScale * Quaternion.Angle(qFrom, qTo);
+        }
+
+        /// <summary>
+        /// Applies Quaternion Slerp method, linearly scaling the slerp amount by the angle between the current and target bones.
+        /// </summary>
+        /// <param name="current"></param>
+        /// <param name="target"></param>
+        /// <param name="slerpAmount"></param>
+        /// <param name="adaptiveScale"></param>
+        /// <returns></returns>
+        public static VNyanQuaternion adaptiveSlerp(VNyanQuaternion current, VNyanQuaternion target, float slerpAmount, float angleScale)
+        {
+            Quaternion currentUnityQ = QuaternionMethods.convertQuaternionV2U(current);
+            Quaternion targetUnityQ = QuaternionMethods.convertQuaternionV2U(target);
+
+            float angleSpeed = setAdaptiveAngle(currentUnityQ, targetUnityQ, angleScale);
+
+            return QuaternionMethods.convertQuaternionU2V(Quaternion.Slerp(currentUnityQ, targetUnityQ, (slerpAmount + angleSpeed) * Time.deltaTime));
         }
     }
 }

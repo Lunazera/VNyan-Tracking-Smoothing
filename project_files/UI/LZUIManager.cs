@@ -1,27 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
-using System.IO;
-using System.Security;
-using Newtonsoft.Json;
 using UnityEngine;
-using UnityEngine.UI;
 using VNyanInterface;
-using static UnityEngine.Random;
 
 // UI Core
 // modified from Sjatar's UI code example for VNyan Plugin UI's: https://github.com/Sjatar/Screen-Light
 
 namespace LZTrackingSmoothingPlugin
 {
-    // VNyanInterface.IButtonClickHandler gives access to pluginButtonClicked
     public class LZUIManager : MonoBehaviour, IButtonClickedHandler
     {
-        [Header("Main Window Prefab")]
+        [Header("Plugin Window")]
+        [Tooltip("Prefab for main UI window (should contain LZMainWindow)")]
         [SerializeField] public GameObject windowPrefab;
+        [Tooltip("Name to show up in VNyan's plugin menu")]
         [SerializeField] private string PluginMenuName = "Tracking Smoothing";
 
         [Header("Settings File")]
+        [Tooltip("Filename to use for settings JSON.")]
         [SerializeField] private string settingName;
 
         private GameObject window;
@@ -33,18 +29,58 @@ namespace LZTrackingSmoothingPlugin
             return settings;
         }
 
+        private void Awake()
+        {
+            if (!Application.isEditor)
+            {
+                // Load Settings File
+                loadSettings();
+
+                // Register UI button
+                VNyanInterface.VNyanInterface.VNyanUI.registerPluginButton(PluginMenuName, (IButtonClickedHandler)this);
+                this.window = (GameObject)VNyanInterface.VNyanInterface.VNyanUI.instantiateUIPrefab((object)this.windowPrefab);
+            }
+
+            if ((UnityEngine.Object)this.window != (UnityEngine.Object)null)
+            {
+                this.window.GetComponent<RectTransform>().anchoredPosition = new Vector2(0.0f, 0.0f);
+                this.window.SetActive(false);
+            }
+        }
+
+        public void pluginButtonClicked()
+        {
+            if ((UnityEngine.Object)this.window == (UnityEngine.Object)null)
+                return;
+            this.window.SetActive(!this.window.activeSelf);
+            if ( !this.window.activeSelf )
+                return;
+            this.window.transform.SetAsLastSibling();
+        }
+
+        /// <summary>
+        /// If we can find the setting JSON file, load it.
+        /// </summary>
+        public void loadSettings()
+        {
+            if (null != VNyanInterface.VNyanInterface.VNyanSettings.loadSettings(settingName))
+            {
+                settings = VNyanInterface.VNyanInterface.VNyanSettings.loadSettings(settingName);
+            }
+        }
+
         /// <summary>
         /// Tries to Add the value in the dictionary and set in VNyan
         /// </summary>
-        /// <param name="key"></param>
+        /// <param name="vnyanparameter">Name used to keep setting in VNyan</param>
         /// <param name="value"></param>
-        public static void addSettingsDictFloat(string key, float value)
+        public static void addSettingsDictFloat(string vnyanparameter, float value)
         {
-            if (!getSettingsDict().TryAdd(key, Convert.ToString(value)))
+            if (!getSettingsDict().TryAdd(vnyanparameter, Convert.ToString(value)))
             {
-                getSettingsDict()[key] = Convert.ToString(value);
+                getSettingsDict()[vnyanparameter] = Convert.ToString(value);
             }
-            VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat(key, value);
+            VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat(vnyanparameter, value);
         }
 
         /// <summary>
@@ -72,51 +108,19 @@ namespace LZTrackingSmoothingPlugin
             if (getSettingsDict().TryGetValue(key, out string value))
             {
                 return Convert.ToSingle(value);
-            } 
+            }
             else
             {
                 return val;
             }
         }
 
-        private void Awake()
-        {
-            if (!Application.isEditor)
-            {
-                // Load Settings File
-                loadSettings();
-
-                // Register UI button
-                VNyanInterface.VNyanInterface.VNyanUI.registerPluginButton(PluginMenuName, (IButtonClickedHandler)this);
-                this.window = (GameObject)VNyanInterface.VNyanInterface.VNyanUI.instantiateUIPrefab((object)this.windowPrefab);
-            }
-
-            if ((UnityEngine.Object)this.window != (UnityEngine.Object)null)
-            {
-                this.window.GetComponent<RectTransform>().anchoredPosition = new Vector2(0.0f, 0.0f);
-                this.window.SetActive(false);
-            }
-        }
-
-        public void loadSettings()
-        {
-            if (null != VNyanInterface.VNyanInterface.VNyanSettings.loadSettings(settingName))
-            {
-                settings = VNyanInterface.VNyanInterface.VNyanSettings.loadSettings(settingName);
-            }
-        }
-
-        
-
-        public void pluginButtonClicked()
-        {
-            if ((UnityEngine.Object)this.window == (UnityEngine.Object)null)
-                return;
-            this.window.SetActive(!this.window.activeSelf);
-            if ( !this.window.activeSelf )
-                return;
-            this.window.transform.SetAsLastSibling();
-        }
+        /// <summary>
+        /// Method to convert VNyan's theme component hex color to a Color.
+        /// </summary>
+        /// <param name="hex">#000000 Hex color format</param>
+        /// <param name="alpha">Transparency between 0-255</param>
+        /// <returns></returns>
         public static Color hexToColor(string hex, byte alpha = 255)
         {
             // conversion from hex to rgb, needed to read from VNyan theme components.
@@ -136,6 +140,12 @@ namespace LZTrackingSmoothingPlugin
             return new Color32(r, g, b, a);
         }
 
+        /// <summary>
+        /// Takes a color and darkens it by some amount.
+        /// </summary>
+        /// <param name="color">Color input</param>
+        /// <param name="amount">byte value to darken each r/g/b by</param>
+        /// <returns></returns>
         public static Color32 darkenColor(Color32 color, byte amount)
         {
             byte r = (byte)Mathf.Max(0, color.r - amount);

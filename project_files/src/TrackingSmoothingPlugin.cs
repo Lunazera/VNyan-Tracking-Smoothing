@@ -1,6 +1,4 @@
-﻿using System;
-using Newtonsoft.Json.Linq;
-using TrackingSmoothLayer;
+﻿using TrackingSmoothLayer;
 using UnityEngine;
 using VNyanInterface;
 
@@ -9,26 +7,37 @@ namespace LZTrackingSmoothingPlugin
 {
     public class TrackingSmoothingPlugin : MonoBehaviour
     {
-        [Header("Main plugin Settings")]
+        [Header("Labels & Settings")]
         [SerializeField] private string paramNameTrackSmoothActive;
-        [SerializeField] private float trackSmoothActive;
+        private float trackSmoothActive = 1f;
 
-        [Header("Eyes Settings")]
+        [Space(10)]
+        [Header("Eyes")]
         [SerializeField] private string paramNameEyeSmoothing;
-        [SerializeField] private float eyeSmoothing;
+        private float eyeSmoothing = 0f;
+
+        [Tooltip("New scale for Smoothing slider (rescales 0-100 slider -> value-0)")]
+        [SerializeField] private float eyeSmoothingScale = 10f;
 
         [SerializeField] private string paramNameEyeBoost;
-        [SerializeField] private float eyeBoost;
+        private float eyeBoost = 0f;
+        [Tooltip("Scale for Boost slider (Should be small, like < 0.1f)")]
+        [SerializeField] private float eyeBoostScale = 0.01f;
 
         [SerializeField] private string paramNameEyeBlinkThreshold;
         [SerializeField] private float eyeBlinkThreshold;
 
-        [Header("Body Settings")]
+        [Space(10)]
+        [Header("Body")]
         [SerializeField] private string paramNameBodySmoothing;
-        [SerializeField] private float bodySmoothing;
+        private float bodySmoothing = 0f;
+        [Tooltip("New scale for Smoothing slider (rescales 0-100 slider -> value-0)")]
+        [SerializeField] private float bodySmoothingScale = 10f;
 
         [SerializeField] private string paramNameBodyBoost;
-        [SerializeField] private float bodyBoost;
+        private float bodyBoost = 0f;
+        [Tooltip("Scale for Boost slider (Should be small, like < 0.1f)")]
+        [SerializeField] private float bodyBoostScale = 0.01f;
 
         TrackSmoothLayer TrackSmoothing = new TrackingSmoothLayer.TrackSmoothLayer();
 
@@ -53,11 +62,11 @@ namespace LZTrackingSmoothingPlugin
                 setInitialValue(paramNameBodyBoost, bodyBoost);
             }
             TrackSmoothing.getLayerSettings().setSmoothLayerOnOff(trackSmoothActive);
-            TrackSmoothing.getLayerSettings().setEyeSmoothing(eyeSmoothing);
-            TrackSmoothing.getLayerSettings().setEyeBoost(eyeBoost);
+            TrackSmoothing.getLayerSettings().setEyeSmoothing(eyeSmoothing, eyeSmoothingScale);
+            TrackSmoothing.getLayerSettings().setEyeBoost(eyeBoost, eyeBoostScale);
             TrackSmoothing.getLayerSettings().setBlendshapeBlinkThreshold(eyeBlinkThreshold);
-            TrackSmoothing.getLayerSettings().setBodySmoothing(bodySmoothing);
-            TrackSmoothing.getLayerSettings().setBodyBoost(bodyBoost);
+            TrackSmoothing.getLayerSettings().setBodySmoothing(bodySmoothing, bodySmoothingScale);
+            TrackSmoothing.getLayerSettings().setBodyBoost(bodyBoost, bodyBoostScale);
         }
 
         /// <summary>
@@ -83,12 +92,12 @@ namespace LZTrackingSmoothingPlugin
             if (checkForNewValue(paramNameEyeSmoothing, eyeSmoothing))
             {
                 eyeSmoothing = LZUIManager.getSettingsDictFloat(paramNameEyeSmoothing);
-                TrackSmoothing.getLayerSettings().setEyeSmoothing(eyeSmoothing);
+                TrackSmoothing.getLayerSettings().setEyeSmoothing(eyeSmoothing, eyeSmoothingScale);
             }
             if (checkForNewValue(paramNameEyeBoost, eyeBoost))
             {
                 eyeBoost = LZUIManager.getSettingsDictFloat(paramNameEyeBoost);
-                TrackSmoothing.getLayerSettings().setEyeBoost(eyeBoost);
+                TrackSmoothing.getLayerSettings().setEyeBoost(eyeBoost, eyeBoostScale);
             }
 
             if (checkForNewValue(paramNameEyeBlinkThreshold, eyeBlinkThreshold))
@@ -102,13 +111,13 @@ namespace LZTrackingSmoothingPlugin
             if (checkForNewValue(paramNameBodySmoothing, bodySmoothing))
             {
                 bodySmoothing = LZUIManager.getSettingsDictFloat(paramNameBodySmoothing);
-                TrackSmoothing.getLayerSettings().setBodySmoothing(bodySmoothing);
+                TrackSmoothing.getLayerSettings().setBodySmoothing(bodySmoothing, bodySmoothingScale);
             }
 
             if (checkForNewValue(paramNameBodyBoost, bodyBoost))
             {
                 bodyBoost = LZUIManager.getSettingsDictFloat(paramNameBodyBoost);
-                TrackSmoothing.getLayerSettings().setBodyBoost(bodyBoost);
+                TrackSmoothing.getLayerSettings().setBodyBoost(bodyBoost, bodyBoostScale);
             }
         }
     }

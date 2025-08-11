@@ -1,8 +1,5 @@
-﻿using System.IO;
-using Newtonsoft.Json;
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using VNyanInterface;
 
@@ -11,7 +8,9 @@ namespace LZTrackingSmoothingPlugin
     class LZSaveButton : MonoBehaviour
     {
         [Header("Settings File")]
+        [Tooltip("Filename to use for settings JSON. Should be the same as in LZUIManager")]
         [SerializeField] private string settingName;
+
         private Button mainButton;
 
         public void Start()
@@ -38,6 +37,9 @@ namespace LZTrackingSmoothingPlugin
             }
         }
 
+        /// <summary>
+        /// Method to change colours of the UI's visual components 
+        /// </summary>
         public void changeThemeSettings()
         {
             Color32 ButtonColor = LZUIManager.hexToColor(VNyanInterface.VNyanInterface.VNyanUI.getCurrentThemeColor(ThemeComponent.Button));

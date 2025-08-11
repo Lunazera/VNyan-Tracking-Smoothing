@@ -8,13 +8,21 @@ namespace LZTrackingSmoothingPlugin
 {
     class LZButton : MonoBehaviour
     {
-        public string buttonName;
+        [Header("Button Settings")]
+        [Tooltip("Setting name to be used in VNyan and settings JSON")]
+        [SerializeField] private string buttonName;
+
+        [Tooltip("Text to show when button is on")]
+        [SerializeField] private string ButtonOnText;
+        
+        [Tooltip("Test to show when button is off")]
+        [SerializeField] private string ButtonOffText;
+        [Tooltip("This will darken the button by when it's off")]
+        [SerializeField] private byte ButtonOffDarker = 40;
+
+        
         private float buttonState;
         private Button mainButton;
-
-        [Header("Button Text")]
-        [SerializeField] private string ButtonOnText;
-        [SerializeField] private string ButtonOffText;
 
         // set Default colors
         Color32 ButtonOnColor = new Color(0.4f, 0.8f, 0.4f);
@@ -109,7 +117,7 @@ namespace LZTrackingSmoothingPlugin
         public void changeThemeSettings()
         {
             ButtonOnColor = LZUIManager.hexToColor(VNyanInterface.VNyanInterface.VNyanUI.getCurrentThemeColor(ThemeComponent.Button));
-            ButtonOffColor = LZUIManager.darkenColor(ButtonOnColor, 50);
+            ButtonOffColor = LZUIManager.darkenColor(ButtonOnColor, ButtonOffDarker);
             ButtonTextColor = LZUIManager.hexToColor(VNyanInterface.VNyanInterface.VNyanUI.getCurrentThemeColor(ThemeComponent.ButtonText));
             ButtonTextOffColor = LZUIManager.darkenColor(ButtonOnColor, 20);
 

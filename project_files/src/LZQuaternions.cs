@@ -5,6 +5,9 @@ using VNyanInterface;
 
 namespace LZQuaternions
 {
+    /// <summary>
+    /// Int lists of bones for reference
+    /// </summary>
     public class BoneLists
     {
         public static List<int> LeftArm = new List<int> { 11, 13, 15, 17 };
@@ -32,6 +35,9 @@ namespace LZQuaternions
         public static List<int> BodyBones = new List<int> { 10, 0, 7, 8, 9 };
     }
 
+    /// <summary>
+    /// Methods to extend and convert VNyanVector3 
+    /// </summary>
     public class VectorMethods
     {
         public static VNyanVector3 set(VNyanVector3 inputVector, float newX, float newY, float newZ)
@@ -68,6 +74,9 @@ namespace LZQuaternions
 
     }
 
+    /// <summary>
+    /// Methods to extend and convert VNyanQuaternions
+    /// </summary>
     public class QuaternionMethods
     {
         public static VNyanQuaternion vnyanQuatProd(VNyanQuaternion q, VNyanQuaternion b)
@@ -172,7 +181,6 @@ namespace LZQuaternions
             return B;
         }
 
-
         public static VNyanQuaternion rotateByEuler(VNyanQuaternion q, float x, float y, float z)
         {
             // first create our rotation quaternion. Takes in degrees and converts to radians.
@@ -216,7 +224,6 @@ namespace LZQuaternions
             return q;
         }
 
-
         public static VNyanQuaternion rotateByVectorUnity(VNyanQuaternion q, VNyanVector3 vector)
         {
             // could ignore mixing for now and just replace.
@@ -237,8 +244,6 @@ namespace LZQuaternions
 
             return q;
         }
-
-
 
         public static Quaternion convertQuaternionV2U(VNyanQuaternion q)
         {

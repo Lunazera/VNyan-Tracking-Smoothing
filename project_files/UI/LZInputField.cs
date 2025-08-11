@@ -8,12 +8,14 @@ namespace LZTrackingSmoothingPlugin
 {
     class LZInputField : MonoBehaviour
     {
+        [Header("Setting Labels")]
+        [Tooltip("Setting name to be shown in plugin UI")]
         [SerializeField] private string settingName;
-        [Header("VNyan Parameter Name")]
-        [SerializeField] private string fieldName;
-        private float fieldValue = 0;
 
-        [Header("Components")]
+        [Tooltip("Setting name to be used in VNyan and settings JSON")]
+        [SerializeField] private string vnyanParamName;
+        private float paramValue = 0;
+
         private TMP_InputField mainField;
         private TMP_Text textLabel;
         private Button mainButton;
@@ -34,20 +36,23 @@ namespace LZTrackingSmoothingPlugin
                 changeThemeSettings();
                 VNyanInterface.VNyanInterface.VNyanUI.colorThemeChanged += changeThemeSettings; // Re-init colors when this event fires
 
-                if (LZUIManager.getSettingsDict().TryGetValue(fieldName, out string value))
+                if (LZUIManager.getSettingsDict().TryGetValue(vnyanParamName, out string value))
                 {
-                    fieldValue = Convert.ToSingle(value);
+                    paramValue = Convert.ToSingle(value);
                     mainField.text = value;
-                    VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat(fieldName, fieldValue);
+                    VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat(vnyanParamName, paramValue);
                 } 
                 else
                 {
-                    LZUIManager.addSettingsDictFloat(fieldName, fieldValue);
-                    mainField.text = Convert.ToString(fieldValue);
+                    LZUIManager.addSettingsDictFloat(vnyanParamName, paramValue);
+                    mainField.text = Convert.ToString(paramValue);
                 }
             }
         }
 
+        /// <summary>
+        /// Method to change colours of the UI's visual components 
+        /// </summary>
         public void changeThemeSettings()
         {
             Color32 TextColor = LZUIManager.hexToColor(VNyanInterface.VNyanInterface.VNyanUI.getCurrentThemeColor(ThemeComponent.Text));
@@ -91,11 +96,11 @@ namespace LZTrackingSmoothingPlugin
             // We need to sanitate the input a bit. Unless the input can be converted to a float we can't use it.
             if (float.TryParse(mainField.text, out float fieldValue))
             {
-                LZUIManager.setSettingsDictFloat(fieldName, fieldValue);
+                LZUIManager.setSettingsDictFloat(vnyanParamName, fieldValue);
             }
             else
             {
-                mainField.text = Convert.ToString(LZUIManager.getSettingsDictFloat(fieldName));
+                mainField.text = Convert.ToString(LZUIManager.getSettingsDictFloat(vnyanParamName));
             }
         }
     }

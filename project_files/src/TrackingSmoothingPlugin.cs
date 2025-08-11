@@ -7,30 +7,37 @@ namespace LZTrackingSmoothingPlugin
 {
     public class TrackingSmoothingPlugin : MonoBehaviour
     {
-        [Header("Main plugin Settings")]
+        [Header("Labels & Settings")]
         [SerializeField] private string paramNameTrackSmoothActive;
-        [SerializeField] private float trackSmoothActive = 1f;
+        private float trackSmoothActive = 1f;
 
-        [Header("Eyes Settings")]
+        [Space(10)]
+        [Header("Eyes")]
         [SerializeField] private string paramNameEyeSmoothing;
-        [SerializeField] private float eyeSmoothing = 0f;
+        private float eyeSmoothing = 0f;
+
+        [Tooltip("New scale for Smoothing slider (rescales 0-100 slider -> value-0)")]
         [SerializeField] private float eyeSmoothingScale = 10f;
 
         [SerializeField] private string paramNameEyeBoost;
-        [SerializeField] private float eyeBoost = 0f;
-        [SerializeField] private float eyeBoostScale = 25f;
+        private float eyeBoost = 0f;
+        [Tooltip("Scale for Boost slider (Should be small, like < 0.1f)")]
+        [SerializeField] private float eyeBoostScale = 0.01f;
 
         [SerializeField] private string paramNameEyeBlinkThreshold;
         [SerializeField] private float eyeBlinkThreshold;
 
-        [Header("Body Settings")]
+        [Space(10)]
+        [Header("Body")]
         [SerializeField] private string paramNameBodySmoothing;
-        [SerializeField] private float bodySmoothing = 0f;
+        private float bodySmoothing = 0f;
+        [Tooltip("New scale for Smoothing slider (rescales 0-100 slider -> value-0)")]
         [SerializeField] private float bodySmoothingScale = 10f;
 
         [SerializeField] private string paramNameBodyBoost;
-        [SerializeField] private float bodyBoost = 0f;
-        [SerializeField] private float bodyBoostScale = 25f;
+        private float bodyBoost = 0f;
+        [Tooltip("Scale for Boost slider (Should be small, like < 0.1f)")]
+        [SerializeField] private float bodyBoostScale = 0.01f;
 
         TrackSmoothLayer TrackSmoothing = new TrackingSmoothLayer.TrackSmoothLayer();
 

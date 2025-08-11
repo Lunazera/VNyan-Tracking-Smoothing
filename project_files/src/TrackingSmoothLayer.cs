@@ -27,8 +27,8 @@ namespace TrackingSmoothLayer
         /// <returns></returns>
         public float rescaleInvertSpeed(float value, float newScale) => newScale * (1 - value / 100f);
 
-        public void setBodyBoost(float val, float scale) => bodyBoost = val / scale;
-        public void setEyeBoost(float val, float scale) => eyeBoost = val / scale;
+        public void setBodyBoost(float val, float scale) => bodyBoost = val * scale;
+        public void setEyeBoost(float val, float scale) => eyeBoost = val * scale;
         public void setBodySmoothing(float val, float scale) => bodySmoothing = rescaleInvertSpeed(val, scale);
         public void setEyeSmoothing(float val, float scale) => eyeSmoothing = rescaleInvertSpeed(val, scale);
         public void setBlendshapeBlinkThreshold(float val) => blendshapeBlinkThreshold = val;

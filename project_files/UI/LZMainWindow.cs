@@ -10,7 +10,7 @@ namespace LZTrackingSmoothingPlugin
     class LZMainWindow : MonoBehaviour, IDragHandler, IPointerDownHandler
     {
         [Header("Plugin Manifest")]
-        [SerializeField] private string PluginVersion = "v2.1";
+        [SerializeField] private string PluginVersion = "v3";
         [SerializeField] private string PluginTitle = "Tracking Smoothing";
         [SerializeField] private string PluginAuthor = "Lunazera";
         [SerializeField] private string PluginWebsite = "https://github.com/Lunazera/VNyan-Tracking-Smoothing";

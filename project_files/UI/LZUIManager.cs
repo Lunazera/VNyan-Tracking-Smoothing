@@ -1,13 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
-using System.IO;
-using System.Security;
-using Newtonsoft.Json;
 using UnityEngine;
-using UnityEngine.UI;
 using VNyanInterface;
-using static UnityEngine.Random;
 
 // UI Core
 // modified from Sjatar's UI code example for VNyan Plugin UI's: https://github.com/Sjatar/Screen-Light

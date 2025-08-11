@@ -1,8 +1,5 @@
-﻿using System.IO;
-using Newtonsoft.Json;
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using VNyanInterface;
 

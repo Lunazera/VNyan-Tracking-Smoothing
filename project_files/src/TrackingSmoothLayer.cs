@@ -1,19 +1,44 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using LZQuaternions;
 using UnityEngine;
 using VNyanInterface;
-using static UnityEngine.GraphicsBuffer;
 
 namespace TrackingSmoothLayer
 {
     public class TrackingSmoothSettings
     {
         private bool SmoothLayerActive = true;
+        private float bodySmoothing = 10.0f;
+        private float bodyBoost = 25f;
+
+        private float eyeSmoothing = 10.0f;
+        private float eyeBoost = 25f;
+        private float blendshapeBlinkThreshold = 50f;
 
         private static List<int> TrackingSmoothingBones = new List<int> {21, 22, 10, 0, 7, 8, 9 };
-        private List<int> TrackingSmoothingEyeBones = new List<int> { 21, 22 };
-        private List<int> TrackingSmoothingBodyBones = new List<int> { 10, 0, 7, 8, 9 };
+
+        public void setSmoothLayerOnOff(float val) => SmoothLayerActive = (val == 1f) ? true : false;
+        public bool getSmoothLayerActive() => SmoothLayerActive;
+
+        /// <summary>
+        /// Rescale the settings range and inverting the direction. Is expecting incoming value is between 0 and 100.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public float rescaleInvertSpeed(float value, float newScale) => newScale * (1 - value / 100f);
+
+        public void setBodyBoost(float val, float scale) => bodyBoost = val / scale;
+        public void setEyeBoost(float val, float scale) => eyeBoost = val / scale;
+        public void setBodySmoothing(float val, float scale) => bodySmoothing = rescaleInvertSpeed(val, scale);
+        public void setEyeSmoothing(float val, float scale) => eyeSmoothing = rescaleInvertSpeed(val, scale);
+        public void setBlendshapeBlinkThreshold(float val) => blendshapeBlinkThreshold = val;
+        
+        public float getBodySmoothing() => bodySmoothing;
+        public float getEyeSmoothing() => eyeSmoothing;
+        public float getEyeBoost() => eyeBoost;
+        public float getBodyBoost() => bodyBoost;
+        public float getBlinkThreshold() => blendshapeBlinkThreshold;
+
 
         private static Dictionary<int, VNyanQuaternion> createNewBonesDictonary(List<int> boneList)
         {
@@ -28,112 +53,33 @@ namespace TrackingSmoothLayer
         private static Dictionary<int, VNyanQuaternion> TrackingSmoothCurrent = createNewBonesDictonary(TrackingSmoothingBones);
         private static Dictionary<int, VNyanQuaternion> TrackingSmoothTarget = createNewBonesDictonary(TrackingSmoothingBones);
 
-        public List<int> getBodyBones() => TrackingSmoothingBodyBones;
-        public List<int> getEyeBones() => TrackingSmoothingEyeBones;
+        public List<int> getBodyBones() => BoneLists.BodyBones;
+        public List<int> getEyeBones() => BoneLists.EyeBones;
         public VNyanQuaternion getCurrentBone(int boneNum) => TrackingSmoothCurrent[boneNum];
         public VNyanQuaternion getTargetBone(int boneNum) => TrackingSmoothTarget[boneNum];
         public Dictionary<int, VNyanQuaternion> getCurrentBoneDict() => TrackingSmoothCurrent;
 
-
-        public void setCurrentBone(int boneNum, VNyanQuaternion bone)
-        {
-            TrackingSmoothCurrent[boneNum] = bone;
-        }
-        public void setTargetBone(int boneNum, VNyanQuaternion bone)
-        {
-            TrackingSmoothTarget[boneNum] = bone;
-        }
-
-        private float bodySmoothing = 10.0f;
-        private float bodyBoost = 25f;
-
-        private float eyeSmoothing = 10.0f;
-        private float eyeBoost = 25f;
-        private float blendshapeBlinkThreshold = 50f;
-
-        public void setSmoothLayerOnOff(float val) => SmoothLayerActive = (val == 1f) ? true : false;
-        public bool getSmoothLayerActive() => SmoothLayerActive;
+        public void setCurrentBone(int boneNum, VNyanQuaternion bone) => TrackingSmoothCurrent[boneNum] = bone;
+        public void setTargetBone(int boneNum, VNyanQuaternion bone) => TrackingSmoothTarget[boneNum] = bone;
 
         /// <summary>
-        /// Rescale the settings range and inverting the diretion
+        /// Rotates current bone towards target bone using adaptive slerp method.
         /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public float rescaleInvertSpeed(float value)
+        /// <param name="boneNum">Bone number to get and set</param>
+        /// <param name="slerpAmount">Slerp value</param>
+        /// <param name="angleScale">Scale for boosting</param>
+        public void rotateTowardsTarget(int boneNum, float slerpAmount, float angleScale)
         {
-            // newMax * (1 - value / oldMax);
-            return 10f * (1 - value / 100f);
-        }
+            VNyanQuaternion target = getTargetBone(boneNum);
+            VNyanQuaternion current = getCurrentBone(boneNum);
 
-        public void setBodyBoost(float val)
-        {
-            bodyBoost = val / 10f;
-        }
-        public void setEyeBoost(float val)
-        {
-            eyeBoost = val / 10f;
-        }
-        
-        public void setBodySmoothing(float val)
-        {
-            bodySmoothing = rescaleInvertSpeed(val);
-        }
-
-        public void setEyeSmoothing(float val)
-        {
-            eyeSmoothing = rescaleInvertSpeed(val);
-        }
-
-        public void setBlendshapeBlinkThreshold(float val)
-        {
-            blendshapeBlinkThreshold = val;
-        }
-
-        public float getBodySmoothing() => bodySmoothing;
-        public float getEyeSmoothing() => eyeSmoothing;
-        public float getEyeBoost() => eyeBoost;
-        public float getBodyBoost() => bodyBoost;
-        public float getBlinkThreshold() => blendshapeBlinkThreshold;
-
-        /// <summary>
-        /// Updates the bones in the Target dictionaries.
-        /// </summary>
-        public void updateRotationsTarget(Dictionary<int, VNyanQuaternion> bones, List<int> boneList)
-        {
-            foreach (int boneNum in boneList)
+            if (!(current == target))
             {
-                setTargetBone(boneNum, bones[boneNum]);
+                Quaternion target_U = QuaternionMethods.convertQuaternionV2U(target);
+                Quaternion current_U = QuaternionMethods.convertQuaternionV2U(current);
+
+                setCurrentBone(boneNum, QuaternionMethods.adaptiveSlerp(current, target, slerpAmount, angleScale));
             }
-        }
-
-        /// <summary>
-        /// Calculates a multiplier based on the angle between two quaternions and a scale.
-        /// </summary>
-        /// <param name="qFrom"></param>
-        /// <param name="qTo"></param>
-        /// <param name="adaptiveScale"></param>
-        /// <returns></returns>
-        public float setAdaptiveAngle(Quaternion qFrom, Quaternion qTo, float angleScale)
-        {
-            return angleScale * Quaternion.Angle(qFrom, qTo);
-        }
-
-        /// <summary>
-        /// Applies Quaternion Slerp method, linearly scaling the slerp amount by the angle between the current and target bones.
-        /// </summary>
-        /// <param name="current"></param>
-        /// <param name="target"></param>
-        /// <param name="slerpAmount"></param>
-        /// <param name="adaptiveScale"></param>
-        /// <returns></returns>
-        public VNyanQuaternion adaptiveSlerp(VNyanQuaternion current, VNyanQuaternion target, float slerpAmount, float angleScale)
-        {
-            Quaternion currentUnityQ = QuaternionMethods.convertQuaternionV2U(current);
-            Quaternion targetUnityQ = QuaternionMethods.convertQuaternionV2U(target);
-
-            float angleSpeed = setAdaptiveAngle(currentUnityQ, targetUnityQ, angleScale);
-
-            return QuaternionMethods.convertQuaternionU2V(Quaternion.Slerp(currentUnityQ, targetUnityQ, (slerpAmount + angleSpeed) * Time.deltaTime));
         }
     }
 
@@ -191,7 +137,7 @@ namespace TrackingSmoothLayer
         public TrackingSmoothSettings getLayerSettings() => TrackingSmoothSettings;
 
         /// <summary>
-        /// 
+        /// Main processing for bone rotations, updating the target bones with current VNyan rotations and then rotating current bones towards them.
         /// </summary>
         /// <param name="boneList"></param>
         /// <param name="slerpAmount"></param>
@@ -205,13 +151,13 @@ namespace TrackingSmoothLayer
                     // 1. Update target bone
                     TrackingSmoothSettings.setTargetBone(boneNum, vnyanCurrent);
                     // 2. Rotate current towards target
-                    rotateTowardsTarget(boneNum, slerpAmount, adaptiveAmount);
+                    TrackingSmoothSettings.rotateTowardsTarget(boneNum, slerpAmount, adaptiveAmount);
                 }
             }
         }
 
         /// <summary>
-        /// Updates VNyan's BoneRotations dictionary with new rotations.
+        /// Updates VNyan's BoneRotations dictionary with new current rotations.
         /// </summary>
         /// <param name="newRotations"></param>
         public void updateBoneRotations(Dictionary<int, VNyanQuaternion> newRotations, List<int> boneList)
@@ -222,26 +168,6 @@ namespace TrackingSmoothLayer
                 {
                     BoneRotations[boneNum] = newRotations[boneNum];
                 }
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="boneNum"></param>
-        /// <param name="slerpAmount"></param>
-        /// <param name="adaptiveAmount"></param>
-        public void rotateTowardsTarget(int boneNum, float slerpAmount, float angleScale)
-        {
-            VNyanQuaternion target = TrackingSmoothSettings.getTargetBone(boneNum);
-            VNyanQuaternion current = TrackingSmoothSettings.getCurrentBone(boneNum);
-
-            if (!(current == target))
-            {
-                Quaternion target_U = QuaternionMethods.convertQuaternionV2U(target);
-                Quaternion current_U = QuaternionMethods.convertQuaternionV2U(current);
-
-                TrackingSmoothSettings.setCurrentBone(boneNum, TrackingSmoothSettings.adaptiveSlerp(current, target, slerpAmount, angleScale));
             }
         }
 

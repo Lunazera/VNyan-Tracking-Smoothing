@@ -1,6 +1,4 @@
-﻿using System;
-using Newtonsoft.Json.Linq;
-using TrackingSmoothLayer;
+﻿using TrackingSmoothLayer;
 using UnityEngine;
 using VNyanInterface;
 
@@ -11,24 +9,28 @@ namespace LZTrackingSmoothingPlugin
     {
         [Header("Main plugin Settings")]
         [SerializeField] private string paramNameTrackSmoothActive;
-        [SerializeField] private float trackSmoothActive;
+        [SerializeField] private float trackSmoothActive = 1f;
 
         [Header("Eyes Settings")]
         [SerializeField] private string paramNameEyeSmoothing;
-        [SerializeField] private float eyeSmoothing;
+        [SerializeField] private float eyeSmoothing = 0f;
+        [SerializeField] private float eyeSmoothingScale = 10f;
 
         [SerializeField] private string paramNameEyeBoost;
-        [SerializeField] private float eyeBoost;
+        [SerializeField] private float eyeBoost = 0f;
+        [SerializeField] private float eyeBoostScale = 25f;
 
         [SerializeField] private string paramNameEyeBlinkThreshold;
         [SerializeField] private float eyeBlinkThreshold;
 
         [Header("Body Settings")]
         [SerializeField] private string paramNameBodySmoothing;
-        [SerializeField] private float bodySmoothing;
+        [SerializeField] private float bodySmoothing = 0f;
+        [SerializeField] private float bodySmoothingScale = 10f;
 
         [SerializeField] private string paramNameBodyBoost;
-        [SerializeField] private float bodyBoost;
+        [SerializeField] private float bodyBoost = 0f;
+        [SerializeField] private float bodyBoostScale = 25f;
 
         TrackSmoothLayer TrackSmoothing = new TrackingSmoothLayer.TrackSmoothLayer();
 
@@ -53,11 +55,11 @@ namespace LZTrackingSmoothingPlugin
                 setInitialValue(paramNameBodyBoost, bodyBoost);
             }
             TrackSmoothing.getLayerSettings().setSmoothLayerOnOff(trackSmoothActive);
-            TrackSmoothing.getLayerSettings().setEyeSmoothing(eyeSmoothing);
-            TrackSmoothing.getLayerSettings().setEyeBoost(eyeBoost);
+            TrackSmoothing.getLayerSettings().setEyeSmoothing(eyeSmoothing, eyeSmoothingScale);
+            TrackSmoothing.getLayerSettings().setEyeBoost(eyeBoost, eyeBoostScale);
             TrackSmoothing.getLayerSettings().setBlendshapeBlinkThreshold(eyeBlinkThreshold);
-            TrackSmoothing.getLayerSettings().setBodySmoothing(bodySmoothing);
-            TrackSmoothing.getLayerSettings().setBodyBoost(bodyBoost);
+            TrackSmoothing.getLayerSettings().setBodySmoothing(bodySmoothing, bodySmoothingScale);
+            TrackSmoothing.getLayerSettings().setBodyBoost(bodyBoost, bodyBoostScale);
         }
 
         /// <summary>
@@ -83,7 +85,7 @@ namespace LZTrackingSmoothingPlugin
             if (checkForNewValue(paramNameEyeSmoothing, eyeSmoothing))
             {
                 eyeSmoothing = LZUIManager.getSettingsDictFloat(paramNameEyeSmoothing);
-                TrackSmoothing.getLayerSettings().setEyeSmoothing(eyeSmoothing);
+                TrackSmoothing.getLayerSettings().setEyeSmoothing(eyeSmoothing, eyeSmoothingScale);
             }
             if (checkForNewValue(paramNameEyeBoost, eyeBoost))
             {
@@ -102,7 +104,7 @@ namespace LZTrackingSmoothingPlugin
             if (checkForNewValue(paramNameBodySmoothing, bodySmoothing))
             {
                 bodySmoothing = LZUIManager.getSettingsDictFloat(paramNameBodySmoothing);
-                TrackSmoothing.getLayerSettings().setBodySmoothing(bodySmoothing);
+                TrackSmoothing.getLayerSettings().setBodySmoothing(bodySmoothing, bodySmoothingScale);
             }
 
             if (checkForNewValue(paramNameBodyBoost, bodyBoost))

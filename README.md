@@ -7,7 +7,7 @@ Set the smoothing slider's up to increase the amount of smoothing applied to you
 
 ## Installation
 1. Download the latest zip file from [releases]([https://github.com/Lunazera/VNyan-Tracking-Detection/releases/](https://github.com/Lunazera/VNyan-Eye-Smoothing/releases))
-2. Unzip the contents in your VNyan folder. This will put the `.dll` and `.vnobj` inside `Items/Assemblies` for you.
+2. Unzip the contents the (`.dll` and `.vnobj` files) inside your VNyan folder's `Items/Assemblies`.
 3. The plugin should be present when you load VNyan! (you should see it in the plugin menu)
 
 ## How it works
